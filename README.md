@@ -1,3 +1,5 @@
+Dit is de standaard readme van Ripple project (met uitzondering van stap 4 bij 'Getting Started', die ik zelf heb bijgedaan):
+
 # Ripple Basic Template
 
 A minimal Ripple application template with TypeScript and Vite.
@@ -19,6 +21,12 @@ A minimal Ripple application template with TypeScript and Vite.
 3. Build for production:
     ```bash
     npm run build
+    ```
+    
+    ^ this will build the app and create a "dist" folder
+3. Extra (Serve app through http server, but install http-server first!):
+    ```bash
+    npx http-server dist
     ```
 
 ## Code Formatting
