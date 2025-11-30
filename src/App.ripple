@@ -1,24 +1,60 @@
 import { track } from 'ripple';
+import { db } from './firebase.js';
+import { collection, onSnapshot, addDoc, deleteDoc, updateDoc, doc } from 'firebase/firestore';
 
 export component App() {
   let todos = track([]);
   let newTodo = track('');
 
-  function addTodo() {
+  // Firebase real-time listener
+  function setupFirebaseListener() {
+    const unsubscribe = onSnapshot(collection(db, 'todos'), (snapshot) => {
+      let todosList = [];
+      snapshot.forEach((doc) => {
+        todosList.push({ id: doc.id, ...doc.data() });
+      });
+      @todos = todosList;
+    });
+    return unsubscribe;
+  }
+
+  // Start listening when component loads
+  setupFirebaseListener();
+
+  async function addTodo() {
     if (@newTodo.trim() !== '') {
-      @todos = [...@todos, { id: Date.now(), text: @newTodo, completed: false }];
-      @newTodo = '';
+      try {
+        await addDoc(collection(db, 'todos'), {
+          text: @newTodo,
+          completed: false,
+          createdAt: new Date()
+        });
+        @newTodo = '';
+      } catch (error) {
+        console.error('Fout bij toevoegen todo: ', error);
+      }
     }
   }
 
-  function deleteTodo(id) {
-    @todos = @todos.filter(todo => todo.id !== id);
+  async function deleteTodo(id) {
+    try {
+      await deleteDoc(doc(db, 'todos', id));
+    } catch (error) {
+      console.error('Fout bij verwijderen todo: ', error);
+    }
   }
 
-  function toggleTodo(id) {
-    @todos = @todos.map(todo => 
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    );
+  async function toggleTodo(id) {
+    const todo = @todos.find(todo => todo.id === id);
+    if (todo) {
+      try {
+        await updateDoc(doc(db, 'todos', id), {
+          completed: !todo.completed
+        });
+      } catch (error) {
+        console.error('Fout bij bijwerken todo: ', error);
+      }
+    }
   }
 
   let remaining = track(() => @todos.filter(todo => !todo.completed).length);
@@ -26,8 +62,8 @@ export component App() {
   <div class="min-h-screen flex justify-center items-start bg-gradient-to-br from-gray-900 to-black text-white font-sans p-6">
     <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-xl p-8 shadow-2xl w-full max-w-2xl">
       
-      <h1 class="text-3xl font-bold text-center mb-2">{'Software Trends: RippleJS'}</h1>
-      <p class="text-gray-400 text-center mb-8">{'Demo van een simpele todo app gemaakt met RippleJS'}</p>
+      <h1 class="text-3xl font-bold text-center mb-2">{'Software Trends: RippleJS (+FIREBASE!)'}</h1>
+      <p class="text-gray-400 text-center mb-8">{'todo app met firebase integratie enal'}</p>
 
       <div class="flex gap-3 mb-6">
         <input 
@@ -72,10 +108,12 @@ export component App() {
         }
       </div>
 
+      {/* Empty State */}
       if (@todos.length === 0) {
         <p class="text-gray-400 text-center py-4">{'nog geen todos'}</p>
       }
 
+      {/* Footer */}
       <div class="flex justify-center gap-3 mt-8 pt-6 border-t border-gray-700">
         <a 
           href="https://www.ripplejs.com/docs/introduction" 
