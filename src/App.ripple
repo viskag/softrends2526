@@ -1,0 +1,90 @@
+import { track } from 'ripple';
+
+export component App() {
+  let todos = track([]);
+  let newTodo = track('');
+
+  function addTodo() {
+    if (@newTodo.trim() !== '') {
+      @todos = [...@todos, { id: Date.now(), text: @newTodo, completed: false }];
+      @newTodo = '';
+    }
+  }
+
+  function deleteTodo(id) {
+    @todos = @todos.filter(todo => todo.id !== id);
+  }
+
+  function toggleTodo(id) {
+    @todos = @todos.map(todo => 
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    );
+  }
+
+  let remaining = track(() => @todos.filter(todo => !todo.completed).length);
+
+  <div class="min-h-screen flex justify-center items-start bg-gradient-to-br from-gray-900 to-black text-white font-sans p-6">
+    <div class="bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-xl p-8 shadow-2xl w-full max-w-2xl">
+      
+      <h1 class="text-3xl font-bold text-center mb-2">{'Software Trends: RippleJS'}</h1>
+      <p class="text-gray-400 text-center mb-8">{'Demo van een simpele todo app gemaakt met RippleJS'}</p>
+
+      <div class="flex gap-3 mb-6">
+        <input 
+          type="text"
+          value={@newTodo}
+          onInput={(e) => @newTodo = e.target.value}
+          onKeyPress={(e) => e.key === 'Enter' && addTodo()}
+          placeholder="Wat moet er gedaan worden?"
+          class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+        />
+        <button 
+          onClick={addTodo}
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+        >
+          {'toevoegen'}
+        </button>
+      </div>
+
+      <div class="mb-6 text-center">
+        <p class="text-gray-300">{@remaining}{' van '}{@todos.length}{' nog te doen '}</p>
+      </div>
+
+      <div class="space-y-3 mb-6">
+        for (const todo of @todos) {
+          <div class="flex items-center gap-4 p-4 bg-gray-700/50 rounded-lg border border-gray-600">
+            <input 
+              type="checkbox"
+              checked={todo.completed}
+              onChange={() => toggleTodo(todo.id)}
+              class="w-5 h-5 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
+            />
+            <span class={`flex-1 text-lg ${todo.completed ? 'line-through text-gray-400' : 'text-white'}`}>
+              {todo.text}
+            </span>
+            <button 
+              onClick={() => deleteTodo(todo.id)}
+              class="text-red-400 hover:text-red-300 hover:bg-red-400/10 w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+            >
+              {'×'}
+            </button>
+          </div>
+        }
+      </div>
+
+      if (@todos.length === 0) {
+        <p class="text-gray-400 text-center py-4">{'nog geen todos'}</p>
+      }
+
+      <div class="flex justify-center gap-3 mt-8 pt-6 border-t border-gray-700">
+        <a 
+          href="https://www.ripplejs.com/docs/introduction" 
+          target="_blank" 
+          class="bg-gray-700 hover:bg-gray-600 text-white px-5 py-2 rounded-xl border border-gray-600 transition-colors"
+        >
+          {'Naar RippleJS Docs'}
+        </a>
+      </div>
+    </div>
+  </div>
+}
